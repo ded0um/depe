@@ -22,7 +22,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       max-width: 500px;
       margin: 0 auto;
-      padding: 65px 16px 90px 16px; /* Ajusté pour remonter juste sous la carte figée */
+      padding: 65px 16px 90px 16px;
       background: var(--bg);
       color: var(--text);
     }
@@ -89,7 +89,7 @@
       background: #283548;
     }
     
-    /* Style plus lisible pour les opérations passées */
+    /* Style pour les opérations passées */
     li.done {
       opacity: 0.75;
       background: #182232;
@@ -115,7 +115,7 @@
     .right-side { display: flex; align-items: center; gap: 10px; }
     .amount-tag { font-weight: 700; font-size: 16px; color: var(--primary); }
     
-    /* Bouton de suppression avec icône SVG épurée */
+    /* Bouton de suppression */
     .btn-del {
       background: none;
       border: none;
@@ -201,24 +201,29 @@
     
     input, select {
       padding: 14px 16px;
-      background: #0f172a;
+      background-color: #0f172a !important;
       border: 1px solid var(--card-border);
       border-radius: 12px;
       font-size: 16px;
-      color: var(--text);
+      color: var(--text) !important;
       width: 100%;
-      appearance: none;
-      -webkit-appearance: none;
+      appearance: none !important;
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
     }
+
     select {
-      background-image: url("data:image/svg+xml;utf8,<svg fill='%94a3b8' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
+      background-image: url("data:image/svg+xml;utf8,<svg fill='%94a3b8' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") !important;
+      background-repeat: no-repeat !important;
+      background-position: right 12px center !important;
+      background-size: 20px !important;
     }
+
     option {
-      background: #0f172a;
-      color: var(--text);
+      background-color: #0f172a !important;
+      color: var(--text) !important;
     }
+
     input:focus, select:focus {
       outline: none;
       border-color: var(--primary);
