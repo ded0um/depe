@@ -144,12 +144,20 @@
     }
 
     async function sendAction(payload) {
+      const formData = new URLSearchParams();
+      for (const key in payload) {
+        formData.append(key, payload[key]);
+      }
+
       await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData
       });
-      await loadData();
+
+      // Délai de précaution pour laisser le temps à Google Sheets d'écrire la ligne
+      setTimeout(loadData, 1000);
     }
 
     async function addItem() {
