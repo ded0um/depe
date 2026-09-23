@@ -20,10 +20,10 @@
     .summary-sub { display: flex; justify-content: space-around; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 10px; }
 
     .form-container { background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    .form-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
     .full-width { grid-column: span 2; }
     
-    input, select, button { padding: 11px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; width: 100%; box-sizing: border-box; }
+    input, select, button { padding: 11px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; width: 100%; box-sizing: border-box; }
     button.btn-add { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; padding: 12px; margin-top: 5px; }
 
     .section-title { font-size: 13px; font-weight: bold; text-transform: uppercase; color: #888; margin: 20px 0 8px 4px; }
@@ -39,7 +39,8 @@
     
     .info { display: flex; flex-direction: column; }
     .info .desc { font-weight: bold; font-size: 15px; }
-    .info .details { font-size: 12px; color: #777; }
+    .info .details { font-size: 12px; color: #666; margin-top: 2px; }
+    .info .date-tag { font-size: 11px; font-weight: 600; color: #d90429; margin-top: 1px; }
     
     .right-side { display: flex; align-items: center; gap: 10px; }
     .amount-tag { font-weight: bold; font-size: 16px; color: var(--primary); }
@@ -64,9 +65,9 @@
 
   <div class="form-container">
     <div class="form-grid">
-      <input type="text" id="description" placeholder="Libellé (ex: Loyer, EDF...)">
+      <input type="text" id="description" class="full-width" placeholder="Libellé (ex: Loyer, EDF...)">
       <input type="number" step="0.01" id="montant" placeholder="Montant €">
-      <select id="categorie" class="full-width">
+      <select id="categorie">
         <option value="🏠 Logement & Charges">🏠 Logement & Charges</option>
         <option value="🛒 Courses & Alimentation">🛒 Courses & Alimentation</option>
         <option value="🚗 Transport / Auto">🚗 Transport / Auto</option>
@@ -74,32 +75,85 @@
         <option value="🛍️ Shopping & Loisirs">🛍️ Shopping & Loisirs</option>
         <option value="📦 Autre" selected>📦 Autre</option>
       </select>
+      
+      <select id="frequence" onchange="toggleDateInput()">
+        <option value="ponctuelle">📅 Date précise</option>
+        <option value="mensuelle">🔄 Mensuel (jour du mois)</option>
+      </select>
+      
+      <div id="dateContainer">
+        <input type="date" id="dateExacte">
+      </div>
+      <div id="jourContainer" style="display: none;">
+        <input type="number" id="jourMois" min="1" max="31" placeholder="Jour (ex: 1, 5, 15...)">
+      </div>
     </div>
     <button class="btn-add" onclick="addItem()">Ajouter la dépense</button>
   </div>
 
-  <div class="section-title">⏳ À venir / À débiter</div>
+  <div class="section-title">⏳ À venir / À débiter (Trier par date)</div>
   <ul id="listPending"></ul>
 
   <div class="section-title" style="margin-top: 30px;">✅ Déjà passées sur le compte</div>
   <ul id="listDone"></ul>
 
-  <!-- Formulaire invisible pour soumettre en tâche de fond -->
+  <!-- Formulaire invisible -->
   <form id="hiddenForm" action="https://script.google.com/macros/s/AKfycbz7QrZuIP_SfbxpdWhdQVAVVDXGLYEZCdwqk6FeGwVvhVk195ucG_NoxSo-M3te4sCHYA/exec" method="POST" target="hiddenIframe">
     <input type="hidden" name="action" id="formAction">
     <input type="hidden" name="id" id="formId">
     <input type="hidden" name="description" id="formDesc">
     <input type="hidden" name="montant" id="formMontant">
     <input type="hidden" name="categorie" id="formCat">
+    <input type="hidden" name="frequence" id="formFreq">
+    <input type="hidden" name="dateVal" id="formDateVal">
   </form>
 
   <iframe name="hiddenIframe" id="hiddenIframe"></iframe>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbz7QrZuIP_SfbxpdWhdQVAVVDXGLYEZCdwqk6FeGwVvhVk195ucG_NoxSo-M3te4sCHYA/exec";
-    
-    // Mémoire locale pour un affichage instantané
     let localItems = [];
+
+    // Basculer l'affichage du champ date/jour
+    function toggleDateInput() {
+      const freq = document.getElementById('frequence').value;
+      if (freq === 'mensuelle') {
+        document.getElementById('dateContainer').style.display = 'none';
+        document.getElementById('jourContainer').style.display = 'block';
+      } else {
+        document.getElementById('dateContainer').style.display = 'block';
+        document.getElementById('jourContainer').style.display = 'none';
+      }
+    }
+
+    // Calcul de la date d'échéance effective pour le tri
+    function getNextDueDate(item) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (item.frequence === 'mensuelle') {
+        const day = parseInt(item.dateVal) || 1;
+        let dueDate = new Date(today.getFullYear(), today.getMonth(), day);
+        if (dueDate < today && item.fait) {
+          dueDate = new Date(today.getFullYear(), today.getMonth() + 1, day);
+        }
+        return dueDate;
+      } else if (item.dateVal) {
+        return new Date(item.dateVal);
+      } else {
+        return new Date(2099, 11, 31); // Sans date -> fin de liste
+      }
+    }
+
+    function formatDateDisplay(item) {
+      if (item.frequence === 'mensuelle') {
+        return `Tous les ${item.dateVal} du mois`;
+      } else if (item.dateVal) {
+        const d = new Date(item.dateVal);
+        return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      }
+      return '';
+    }
 
     async function loadData() {
       try {
@@ -108,7 +162,7 @@
         localItems = data.items;
         updateUI();
       } catch (err) {
-        console.error("Erreur de synchronisation :", err);
+        console.error("Erreur :", err);
       }
     }
 
@@ -117,16 +171,16 @@
       let totalPasse = 0;
 
       localItems.forEach(i => {
-        if (i.fait) {
-          totalPasse += i.montant;
-        } else {
-          totalAVenir += i.montant;
-        }
+        if (i.fait) totalPasse += i.montant;
+        else totalAVenir += i.montant;
       });
 
       document.getElementById('totalAVenir').innerText = totalAVenir.toFixed(2) + " €";
       document.getElementById('totalPasse').innerText = totalPasse.toFixed(2) + " €";
       document.getElementById('totalGlobal').innerText = (totalAVenir + totalPasse).toFixed(2) + " €";
+
+      // Tri chronologique : du plus proche au plus éloigné
+      localItems.sort((a, b) => getNextDueDate(a) - getNextDueDate(b));
 
       const pendingEl = document.getElementById('listPending');
       const doneEl = document.getElementById('listDone');
@@ -154,12 +208,15 @@
       const li = document.createElement('li');
       if (item.fait) li.classList.add('done');
 
+      const dateTxt = formatDateDisplay(item);
+
       li.innerHTML = `
         <div class="item-left" onclick="toggleItem('${item.id}')">
           <input type="checkbox" ${item.fait ? 'checked' : ''}>
           <div class="info">
             <span class="desc">${item.description}</span>
             <span class="details">${item.categorie}</span>
+            ${dateTxt ? `<span class="date-tag">🗓️ ${dateTxt}</span>` : ''}
           </div>
         </div>
         <div class="right-side">
@@ -176,6 +233,8 @@
       document.getElementById('formDesc').value = data.description || '';
       document.getElementById('formMontant').value = data.montant || '';
       document.getElementById('formCat').value = data.categorie || '';
+      document.getElementById('formFreq').value = data.frequence || '';
+      document.getElementById('formDateVal').value = data.dateVal || '';
 
       document.getElementById('hiddenForm').submit();
     }
@@ -184,9 +243,18 @@
       const descInput = document.getElementById('description');
       const amountInput = document.getElementById('montant');
       const catSelect = document.getElementById('categorie');
+      const freqSelect = document.getElementById('frequence');
 
       const desc = descInput.value.trim();
       const amount = parseFloat(amountInput.value);
+      const freq = freqSelect.value;
+      
+      let dateVal = '';
+      if (freq === 'mensuelle') {
+        dateVal = document.getElementById('jourMois').value;
+      } else {
+        dateVal = document.getElementById('dateExacte').value;
+      }
 
       if (!desc || isNaN(amount)) {
         alert("Merci d'indiquer un libellé et un montant valide.");
@@ -199,28 +267,27 @@
         description: desc,
         montant: amount,
         categorie: catSelect.value,
-        fait: false
+        fait: false,
+        frequence: freq,
+        dateVal: dateVal
       };
 
-      // 1. Mise à jour instantanée du DOM
       localItems.push(newItem);
       updateUI();
 
       descInput.value = '';
       amountInput.value = '';
+      document.getElementById('dateExacte').value = '';
+      document.getElementById('jourMois').value = '';
 
-      // 2. Synchronisation en arrière-plan
       submitForm('add', newItem);
     }
 
     function toggleItem(id) {
       const item = localItems.find(i => i.id.toString() === id.toString());
       if (item) {
-        // 1. Inversion instantanée
         item.fait = !item.fait;
         updateUI();
-
-        // 2. Synchronisation en arrière-plan
         submitForm('toggle', { id: id });
       }
     }
@@ -229,15 +296,14 @@
       if (event) event.stopPropagation();
       if (!confirm("Supprimer cette dépense ?")) return;
 
-      // 1. Suppression instantanée
       localItems = localItems.filter(i => i.id.toString() !== id.toString());
       updateUI();
-
-      // 2. Synchronisation en arrière-plan
       submitForm('delete', { id: id });
     }
 
-    // Chargement initial au lancement de la page
+    // Date par défaut du jour
+    document.getElementById('dateExacte').valueAsDate = new Date();
+
     loadData();
   </script>
 </body>
