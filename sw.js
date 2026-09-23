@@ -1,8 +1,9 @@
-const CACHE_NAME = 'depenses-v1';
+const CACHE_NAME = 'depenses-v2';
 const ASSETS = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './icon.svg'
 ];
 
 self.addEventListener('install', (e) => {
@@ -13,11 +14,21 @@ self.addEventListener('install', (e) => {
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(clients.claim());
+  e.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (e) => {
-  // Ignorer le cache pour les requêtes vers Google Apps Script
   if (e.request.url.includes('script.google.com')) {
     return;
   }
