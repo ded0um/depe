@@ -157,7 +157,7 @@
     }
     .fab-btn:active { transform: scale(0.95); background: var(--primary-hover); }
 
-    /* Surfenêtre / Modal */
+    /* Modal / Surfenêtres communes */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -242,6 +242,71 @@
     }
     button.btn-add:active { background: var(--primary-hover); }
 
+    /* Popup/Modal de confirmation sombre */
+    .confirm-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 300;
+    }
+    .confirm-overlay.open { display: flex; }
+
+    .confirm-box {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 24px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      animation: fadeIn 0.15s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .confirm-box p {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0 0 20px 0;
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .confirm-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+    }
+
+    .confirm-btn-cancel {
+      background: #334155;
+      color: var(--text);
+    }
+    .confirm-btn-cancel:active { background: #475569; }
+
+    .confirm-btn-danger {
+      background: var(--primary);
+      color: white;
+    }
+    .confirm-btn-danger:active { background: var(--primary-hover); }
+
     iframe { display: none; }
   </style>
 </head>
@@ -290,6 +355,17 @@
     </div>
   </div>
 
+  <!-- Surfenêtre (Modal) de confirmation de suppression sombre -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <p>Supprimer cette dépense ?</p>
+      <div class="confirm-actions">
+        <button class="confirm-btn confirm-btn-cancel" onclick="closeConfirmModal()">Annuler</button>
+        <button class="confirm-btn confirm-btn-danger" id="confirmDeleteBtn">Supprimer</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Formulaire invisible pour envoi en arrière-plan -->
   <form id="hiddenForm" action="https://script.google.com/macros/s/AKfycbz7QrZuIP_SfbxpdWhdQVAVVDXGLYEZCdwqk6FeGwVvhVk195ucG_NoxSo-M3te4sCHYA/exec" method="POST" target="hiddenIframe">
     <input type="hidden" name="action" id="formAction">
@@ -306,6 +382,7 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbz7QrZuIP_SfbxpdWhdQVAVVDXGLYEZCdwqk6FeGwVvhVk195ucG_NoxSo-M3te4sCHYA/exec";
     let localItems = [];
+    let itemToDeleteId = null;
 
     function openModal() {
       document.getElementById('modalOverlay').classList.add('open');
@@ -521,14 +598,26 @@
       }
     }
 
+    /* Gestion de la modal de confirmation personnalisée */
     function deleteItem(id, event) {
       if (event) event.stopPropagation();
-      if (!confirm("Supprimer cette dépense ?")) return;
-
-      localItems = localItems.filter(i => i.id.toString() !== id.toString());
-      updateUI();
-      submitForm('delete', { id: id });
+      itemToDeleteId = id;
+      document.getElementById('confirmOverlay').classList.add('open');
     }
+
+    function closeConfirmModal() {
+      itemToDeleteId = null;
+      document.getElementById('confirmOverlay').classList.remove('open');
+    }
+
+    document.getElementById('confirmDeleteBtn').onclick = function() {
+      if (itemToDeleteId) {
+        localItems = localItems.filter(i => i.id.toString() !== itemToDeleteId.toString());
+        updateUI();
+        submitForm('delete', { id: itemToDeleteId });
+        closeConfirmModal();
+      }
+    };
 
     loadData();
   </script>
