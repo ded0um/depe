@@ -95,39 +95,42 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbzWRJ15yLASE1lewGfvMTG5GN-n9Z41RCubdHrhwtRlPReWdOOwsqK3Xjr5Sj_D7r1t0w/exec";
 
-    async function loadData() {
-      try {
-        const res = await fetch(API_URL, { redirect: "follow" });
-        const data = await res.json();
-        
-        // Mise à jour des totaux
-        document.getElementById('totalAVenir').innerText = data.totalAVenir.toFixed(2) + " €";
-        document.getElementById('totalPasse').innerText = data.totalPasse.toFixed(2) + " €";
-        document.getElementById('totalGlobal').innerText = data.totalGlobal.toFixed(2) + " €";
+    // Lecture sécurisée via insertion d'un script (contourne à 100% CORS)
+    function loadData() {
+      const oldScript = document.getElementById('jsonp-script');
+      if (oldScript) oldScript.remove();
 
-        const pendingEl = document.getElementById('listPending');
-        const doneEl = document.getElementById('listDone');
-        
-        pendingEl.innerHTML = '';
-        doneEl.innerHTML = '';
+      const script = document.createElement('script');
+      script.id = 'jsonp-script';
+      script.src = API_URL + "?callback=renderData";
+      document.body.appendChild(script);
+    }
 
-        const pendingItems = data.items.filter(i => !i.fait);
-        const doneItems = data.items.filter(i => i.fait);
+    // Callback exécuté automatiquement à la réception des données
+    function renderData(data) {
+      document.getElementById('totalAVenir').innerText = data.totalAVenir.toFixed(2) + " €";
+      document.getElementById('totalPasse').innerText = data.totalPasse.toFixed(2) + " €";
+      document.getElementById('totalGlobal').innerText = data.totalGlobal.toFixed(2) + " €";
 
-        if (pendingItems.length === 0) {
-          pendingEl.innerHTML = '<p style="text-align:center; color:#888; font-size:14px;">Toutes les dépenses sont passées ! 🎉</p>';
-        } else {
-          pendingItems.forEach(item => pendingEl.appendChild(createItemElement(item)));
-        }
+      const pendingEl = document.getElementById('listPending');
+      const doneEl = document.getElementById('listDone');
+      
+      pendingEl.innerHTML = '';
+      doneEl.innerHTML = '';
 
-        if (doneItems.length === 0) {
-          doneEl.innerHTML = '<p style="text-align:center; color:#888; font-size:14px;">Aucune dépense cochée.</p>';
-        } else {
-          doneItems.forEach(item => doneEl.appendChild(createItemElement(item)));
-        }
+      const pendingItems = data.items.filter(i => !i.fait);
+      const doneItems = data.items.filter(i => i.fait);
 
-      } catch (err) {
-        console.error("Erreur de chargement :", err);
+      if (pendingItems.length === 0) {
+        pendingEl.innerHTML = '<p style="text-align:center; color:#888; font-size:14px;">Toutes les dépenses sont passées ! 🎉</p>';
+      } else {
+        pendingItems.forEach(item => pendingEl.appendChild(createItemElement(item)));
+      }
+
+      if (doneItems.length === 0) {
+        doneEl.innerHTML = '<p style="text-align:center; color:#888; font-size:14px;">Aucune dépense cochée.</p>';
+      } else {
+        doneItems.forEach(item => doneEl.appendChild(createItemElement(item)));
       }
     }
 
@@ -136,7 +139,7 @@
       if (item.fait) li.classList.add('done');
 
       li.innerHTML = `
-        <div class="item-left" onclick="toggleItem('${item.id}', ${!item.fait})">
+        <div class="item-left" onclick="toggleItem('${item.id}')">
           <input type="checkbox" ${item.fait ? 'checked' : ''}>
           <div class="info">
             <span class="desc">${item.description}</span>
@@ -169,7 +172,8 @@
 
       await fetch(API_URL, {
         method: 'POST',
-        redirect: "follow",
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'add',
           description: desc,
@@ -178,28 +182,33 @@
         })
       });
 
-      loadData();
+      setTimeout(loadData, 1000);
     }
 
-    async function toggleItem(id, fait) {
+    async function toggleItem(id) {
       await fetch(API_URL, {
         method: 'POST',
-        redirect: "follow",
-        body: JSON.stringify({ action: 'toggle', id: id, fait: fait })
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle', id: id })
       });
-      loadData();
+
+      setTimeout(loadData, 800);
     }
 
     async function deleteItem(id) {
       if (!confirm("Supprimer cette dépense ?")) return;
       await fetch(API_URL, {
         method: 'POST',
-        redirect: "follow",
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', id: id })
       });
-      loadData();
+
+      setTimeout(loadData, 800);
     }
 
+    // Chargement initial
     loadData();
   </script>
 </body>
