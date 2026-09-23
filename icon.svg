@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Fond en dégradé sombre (#0f172a vers #1e293b) -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+
+    <!-- Dégradé rouge dynamique (#ef4444 vers #dc2626) -->
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444" />
+      <stop offset="100%" stop-color="#dc2626" />
+    </linearGradient>
+
+    <!-- Ombre portée douce -->
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.6" />
+    </filter>
+  </defs>
+
+  <!-- Fond carré arrondi (Style App Icon) -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+
+  <!-- Bordure intérieure discrète -->
+  <rect x="2" y="2" width="508" height="508" rx="110" fill="none" stroke="#334155" stroke-width="4" opacity="0.6" />
+
+  <!-- Groupe Central avec ombre -->
+  <g filter="url(#dropShadow)">
+    <!-- Arc du D de Dedoum / Dépenses (Thème Rouge) -->
+    <path d="M 140 120 
+             L 250 120 
+             A 136 136 0 0 1 250 392 
+             L 140 392 
+             Z" 
+          fill="none" 
+          stroke="url(#redGrad)" 
+          stroke-width="36" 
+          stroke-linejoin="round" 
+          stroke-linecap="round" />
+
+    <!-- Barre verticale du D sous forme de graphique ascendant -->
+    <line x1="140" y1="120" x2="140" y2="392" stroke="#94a3b8" stroke-width="36" stroke-linecap="round" />
+
+    <!-- Courbe de tendance / Dépenses à l'intérieur du D -->
+    <path d="M 180 320 
+             L 230 270 
+             L 270 295 
+             L 340 210" 
+          fill="none" 
+          stroke="url(#redGrad)" 
+          stroke-width="24" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" />
+
+    <!-- Flèche sortante dynamique -->
+    <path d="M 300 210 L 340 210 L 340 250" 
+          fill="none" 
+          stroke="url(#redGrad)" 
+          stroke-width="24" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" />
+  </g>
+</svg>
