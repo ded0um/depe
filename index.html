@@ -14,27 +14,22 @@
     body { font-family: system-ui, -apple-system, sans-serif; max-width: 500px; margin: 20px auto; padding: 0 15px; background: var(--bg); color: #333; }
     h1 { text-align: center; margin-bottom: 15px; }
 
-    /* Résumé des montants */
     .summary-card { background: #2b2d42; color: white; border-radius: 12px; padding: 18px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     .summary-card .label { font-size: 13px; text-transform: uppercase; opacity: 0.8; letter-spacing: 0.5px; }
     .summary-card .amount { font-size: 32px; font-weight: bold; margin: 5px 0 10px 0; color: #ef233c; }
     .summary-sub { display: flex; justify-content: space-around; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 10px; }
 
-    /* Formulaire d'ajout */
     .form-container { background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
     .form-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-bottom: 8px; }
     .full-width { grid-column: span 2; }
     
     input, select, button { padding: 11px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; width: 100%; box-sizing: border-box; }
     button.btn-add { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; padding: 12px; margin-top: 5px; }
-    button.btn-add:hover { background: #ef233c; }
 
-    /* Listes */
     .section-title { font-size: 13px; font-weight: bold; text-transform: uppercase; color: #888; margin: 20px 0 8px 4px; }
     ul { list-style: none; padding: 0; margin: 0; }
-    li { background: var(--card); padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: opacity 0.2s; }
+    li { background: var(--card); padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     
-    /* Éléments cochés */
     li.done { opacity: 0.55; background: #e9ecef; }
     li.done .desc { text-decoration: line-through; }
     li.done .amount-tag { color: var(--checked); }
@@ -57,17 +52,15 @@
 
   <h1>💸 Suivi Dépenses</h1>
 
-  <!-- RESUME DES RESTE A PAYER -->
   <div class="summary-card">
     <div class="label">Reste à passer sur le compte</div>
-    <div class="amount" id="totalAVenir">-- €</div>
+    <div class="amount" id="totalAVenir">0.00 €</div>
     <div class="summary-sub">
-      <span>Déjà passé : <strong id="totalPasse">-- €</strong></span>
-      <span>Total : <strong id="totalGlobal">-- €</strong></span>
+      <span>Déjà passé : <strong id="totalPasse">0.00 €</strong></span>
+      <span>Total : <strong id="totalGlobal">0.00 €</strong></span>
     </div>
   </div>
 
-  <!-- FORMULAIRE -->
   <div class="form-container">
     <div class="form-grid">
       <input type="text" id="description" placeholder="Libellé (ex: Loyer, EDF...)">
@@ -84,29 +77,25 @@
     <button class="btn-add" onclick="addItem()">Ajouter la dépense</button>
   </div>
 
-  <!-- LISTE DES DEPENSES A VENIR -->
   <div class="section-title">⏳ À venir / À débiter</div>
-  <ul id="listPending">Chargement...</ul>
+  <ul id="listPending"></ul>
 
-  <!-- LISTE DES DEPENSES DEJA PASSEES -->
   <div class="section-title" style="margin-top: 30px;">✅ Déjà passées sur le compte</div>
   <ul id="listDone"></ul>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbzWRJ15yLASE1lewGfvMTG5GN-n9Z41RCubdHrhwtRlPReWdOOwsqK3Xjr5Sj_D7r1t0w/exec";
 
-    // Lecture sécurisée via insertion d'un script (contourne à 100% CORS)
-    function loadData() {
-      const oldScript = document.getElementById('jsonp-script');
-      if (oldScript) oldScript.remove();
-
-      const script = document.createElement('script');
-      script.id = 'jsonp-script';
-      script.src = API_URL + "?callback=renderData";
-      document.body.appendChild(script);
+    async function loadData() {
+      try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        renderData(data);
+      } catch (err) {
+        console.error("Erreur de chargement :", err);
+      }
     }
 
-    // Callback exécuté automatiquement à la réception des données
     function renderData(data) {
       document.getElementById('totalAVenir').innerText = data.totalAVenir.toFixed(2) + " €";
       document.getElementById('totalPasse').innerText = data.totalPasse.toFixed(2) + " €";
@@ -154,6 +143,15 @@
       return li;
     }
 
+    async function sendAction(payload) {
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      await loadData();
+    }
+
     async function addItem() {
       const descInput = document.getElementById('description');
       const amountInput = document.getElementById('montant');
@@ -170,45 +168,23 @@
       descInput.value = '';
       amountInput.value = '';
 
-      await fetch(API_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'add',
-          description: desc,
-          montant: amount,
-          categorie: catSelect.value
-        })
+      await sendAction({
+        action: 'add',
+        description: desc,
+        montant: amount,
+        categorie: catSelect.value
       });
-
-      setTimeout(loadData, 1000);
     }
 
     async function toggleItem(id) {
-      await fetch(API_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'toggle', id: id })
-      });
-
-      setTimeout(loadData, 800);
+      await sendAction({ action: 'toggle', id: id });
     }
 
     async function deleteItem(id) {
       if (!confirm("Supprimer cette dépense ?")) return;
-      await fetch(API_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', id: id })
-      });
-
-      setTimeout(loadData, 800);
+      await sendAction({ action: 'delete', id: id });
     }
 
-    // Chargement initial
     loadData();
   </script>
 </body>
