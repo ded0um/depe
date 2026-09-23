@@ -47,9 +47,6 @@
     .btn-del { background: none; border: none; color: #aaa; cursor: pointer; font-size: 16px; padding: 4px; }
     .btn-del:hover { color: #d90429; }
     iframe { display: none; }
-
-    /* Zone de logs de débogage */
-    #debugConsole { margin-top: 30px; padding: 10px; background: #1e1e1e; color: #00ff00; font-family: monospace; font-size: 11px; border-radius: 8px; max-height: 150px; overflow-y: auto; word-break: break-all; }
   </style>
 </head>
 <body>
@@ -87,11 +84,7 @@
   <div class="section-title" style="margin-top: 30px;">✅ Déjà passées sur le compte</div>
   <ul id="listDone"></ul>
 
-  <!-- Journal d'affichage des erreurs -->
-  <div class="section-title">📋 Journal de statut</div>
-  <div id="debugConsole">Initialisation...</div>
-
-  <!-- Formulaire invisible -->
+  <!-- Formulaire invisible pour soumettre en tâche de fond -->
   <form id="hiddenForm" action="https://script.google.com/macros/s/AKfycbz7QrZuIP_SfbxpdWhdQVAVVDXGLYEZCdwqk6FeGwVvhVk195ucG_NoxSo-M3te4sCHYA/exec" method="POST" target="hiddenIframe">
     <input type="hidden" name="action" id="formAction">
     <input type="hidden" name="id" id="formId">
@@ -100,35 +93,40 @@
     <input type="hidden" name="categorie" id="formCat">
   </form>
 
-  <iframe name="hiddenIframe" id="hiddenIframe" onload="onIframeLoad()"></iframe>
+  <iframe name="hiddenIframe" id="hiddenIframe"></iframe>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbz7QrZuIP_SfbxpdWhdQVAVVDXGLYEZCdwqk6FeGwVvhVk195ucG_NoxSo-M3te4sCHYA/exec";
-    let isInitial = true;
-
-    function log(msg) {
-      const consoleEl = document.getElementById('debugConsole');
-      const time = new Date().toLocaleTimeString();
-      consoleEl.innerHTML += `<br>[${time}] ${msg}`;
-      consoleEl.scrollTop = consoleEl.scrollHeight;
-    }
+    
+    // Mémoire locale pour un affichage instantané
+    let localItems = [];
 
     async function loadData() {
-      log("Chargement des données...");
       try {
         const response = await fetch(API_URL + "?cache=" + Date.now());
         const data = await response.json();
-        log("Données reçues : " + data.items.length + " élément(s)");
-        renderData(data);
+        localItems = data.items;
+        updateUI();
       } catch (err) {
-        log("❌ Erreur de chargement : " + err.message);
+        console.error("Erreur de synchronisation :", err);
       }
     }
 
-    function renderData(data) {
-      document.getElementById('totalAVenir').innerText = data.totalAVenir.toFixed(2) + " €";
-      document.getElementById('totalPasse').innerText = data.totalPasse.toFixed(2) + " €";
-      document.getElementById('totalGlobal').innerText = data.totalGlobal.toFixed(2) + " €";
+    function updateUI() {
+      let totalAVenir = 0;
+      let totalPasse = 0;
+
+      localItems.forEach(i => {
+        if (i.fait) {
+          totalPasse += i.montant;
+        } else {
+          totalAVenir += i.montant;
+        }
+      });
+
+      document.getElementById('totalAVenir').innerText = totalAVenir.toFixed(2) + " €";
+      document.getElementById('totalPasse').innerText = totalPasse.toFixed(2) + " €";
+      document.getElementById('totalGlobal').innerText = (totalAVenir + totalPasse).toFixed(2) + " €";
 
       const pendingEl = document.getElementById('listPending');
       const doneEl = document.getElementById('listDone');
@@ -136,8 +134,8 @@
       pendingEl.innerHTML = '';
       doneEl.innerHTML = '';
 
-      const pendingItems = data.items.filter(i => !i.fait);
-      const doneItems = data.items.filter(i => i.fait);
+      const pendingItems = localItems.filter(i => !i.fait);
+      const doneItems = localItems.filter(i => i.fait);
 
       if (pendingItems.length === 0) {
         pendingEl.innerHTML = '<p style="text-align:center; color:#888; font-size:14px;">Toutes les dépenses sont passées ! 🎉</p>';
@@ -166,14 +164,13 @@
         </div>
         <div class="right-side">
           <span class="amount-tag">-${item.montant.toFixed(2)} €</span>
-          <button class="btn-del" onclick="deleteItem('${item.id}')">✕</button>
+          <button class="btn-del" onclick="deleteItem('${item.id}', event)">✕</button>
         </div>
       `;
       return li;
     }
 
     function submitForm(action, data = {}) {
-      log("Envoi action : " + action);
       document.getElementById('formAction').value = action;
       document.getElementById('formId').value = data.id || '';
       document.getElementById('formDesc').value = data.description || '';
@@ -183,47 +180,64 @@
       document.getElementById('hiddenForm').submit();
     }
 
-    function onIframeLoad() {
-      if (isInitial) {
-        isInitial = false;
-        return;
-      }
-      log("Retour serveur reçu, rafraîchissement...");
-      setTimeout(loadData, 1200);
-    }
-
     function addItem() {
       const descInput = document.getElementById('description');
       const amountInput = document.getElementById('montant');
       const catSelect = document.getElementById('categorie');
 
       const desc = descInput.value.trim();
-      const amount = amountInput.value;
+      const amount = parseFloat(amountInput.value);
 
-      if (!desc || !amount) {
-        alert("Merci d'indiquer un libellé et un montant.");
+      if (!desc || isNaN(amount)) {
+        alert("Merci d'indiquer un libellé et un montant valide.");
         return;
       }
+
+      const newId = Date.now().toString();
+      const newItem = {
+        id: newId,
+        description: desc,
+        montant: amount,
+        categorie: catSelect.value,
+        fait: false
+      };
+
+      // 1. Mise à jour instantanée du DOM
+      localItems.push(newItem);
+      updateUI();
 
       descInput.value = '';
       amountInput.value = '';
 
-      submitForm('add', {
-        description: desc,
-        montant: amount,
-        categorie: catSelect.value
-      });
+      // 2. Synchronisation en arrière-plan
+      submitForm('add', newItem);
     }
 
     function toggleItem(id) {
-      submitForm('toggle', { id: id });
+      const item = localItems.find(i => i.id.toString() === id.toString());
+      if (item) {
+        // 1. Inversion instantanée
+        item.fait = !item.fait;
+        updateUI();
+
+        // 2. Synchronisation en arrière-plan
+        submitForm('toggle', { id: id });
+      }
     }
 
-    function deleteItem(id) {
+    function deleteItem(id, event) {
+      if (event) event.stopPropagation();
       if (!confirm("Supprimer cette dépense ?")) return;
+
+      // 1. Suppression instantanée
+      localItems = localItems.filter(i => i.id.toString() !== id.toString());
+      updateUI();
+
+      // 2. Synchronisation en arrière-plan
       submitForm('delete', { id: id });
     }
 
+    // Chargement initial au lancement de la page
     loadData();
   </script>
 </body>
