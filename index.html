@@ -6,54 +6,221 @@
   <title>Suivi Dépenses</title>
   <style>
     :root {
-      --bg: #f8f9fa;
-      --card: #ffffff;
-      --primary: #d90429;
-      --checked: #6c757d;
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #ef4444;
+      --primary-hover: #dc2626;
+      --accent: #f43f5e;
+      --checked: #475569;
     }
-    body { font-family: system-ui, -apple-system, sans-serif; max-width: 500px; margin: 20px auto; padding: 0 15px; background: var(--bg); color: #333; }
-    h1 { text-align: center; margin-bottom: 15px; }
 
-    .summary-card { background: #2b2d42; color: white; border-radius: 12px; padding: 18px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .summary-card .label { font-size: 13px; text-transform: uppercase; opacity: 0.8; letter-spacing: 0.5px; }
-    .summary-card .amount { font-size: 32px; font-weight: bold; margin: 5px 0 10px 0; color: #ef233c; }
-    .summary-sub { display: flex; justify-content: space-around; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 10px; }
+    * { box-sizing: border-box; }
 
-    .form-container { background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-    .full-width { grid-column: span 2; }
-    
-    input, select, button { padding: 11px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; width: 100%; box-sizing: border-box; }
-    button.btn-add { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; padding: 12px; margin-top: 5px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 16px 16px 90px 16px;
+      background: var(--bg);
+      color: var(--text);
+    }
 
-    .section-title { font-size: 13px; font-weight: bold; text-transform: uppercase; color: #888; margin: 20px 0 8px 4px; }
+    /* Carte de résumé du haut */
+    .summary-card {
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 22px;
+      text-align: center;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+    .summary-card .label {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      font-weight: 600;
+    }
+    .summary-card .amount {
+      font-size: 38px;
+      font-weight: 800;
+      margin: 6px 0 16px 0;
+      color: var(--primary);
+    }
+    .summary-sub {
+      display: flex;
+      justify-content: space-around;
+      font-size: 13px;
+      border-top: 1px solid var(--card-border);
+      padding-top: 14px;
+      color: var(--text-muted);
+    }
+    .summary-sub strong { color: var(--text); }
+
+    /* Titres de sections */
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      margin: 24px 0 10px 4px;
+    }
+
+    /* Liste des dépenses */
     ul { list-style: none; padding: 0; margin: 0; }
-    li { background: var(--card); padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    li {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      padding: 16px;
+      margin-bottom: 10px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
     
-    li.done { opacity: 0.55; background: #e9ecef; }
+    li.done {
+      opacity: 0.45;
+      background: #111827;
+      border-color: #1f2937;
+    }
     li.done .desc { text-decoration: line-through; }
     li.done .amount-tag { color: var(--checked); }
 
-    .item-left { display: flex; align-items: center; gap: 12px; cursor: pointer; flex: 1; }
-    .item-left input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+    .item-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      flex: 1;
+    }
+    .item-left input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
     
     .info { display: flex; flex-direction: column; }
-    .info .desc { font-weight: bold; font-size: 15px; }
-    .info .details { font-size: 12px; color: #666; margin-top: 2px; }
-    .info .date-tag { font-size: 11px; font-weight: 600; color: #d90429; margin-top: 1px; }
+    .info .desc { font-weight: 600; font-size: 16px; color: var(--text); }
+    .info .date-tag { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-top: 2px; }
     
-    .right-side { display: flex; align-items: center; gap: 10px; }
-    .amount-tag { font-weight: bold; font-size: 16px; color: var(--primary); }
+    .right-side { display: flex; align-items: center; gap: 12px; }
+    .amount-tag { font-weight: 700; font-size: 17px; color: var(--primary); }
     
-    .btn-del { background: none; border: none; color: #aaa; cursor: pointer; font-size: 16px; padding: 4px; }
-    .btn-del:hover { color: #d90429; }
+    .btn-del {
+      background: none;
+      border: none;
+      color: #64748b;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 6px;
+      border-radius: 8px;
+      line-height: 1;
+    }
+    .btn-del:active { color: var(--primary); background: #334155; }
+
+    /* Bouton Flottant (FAB) */
+    .fab-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 60px;
+      height: 60px;
+      border-radius: 30px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      font-size: 32px;
+      font-weight: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
+      cursor: pointer;
+      z-index: 100;
+    }
+    .fab-btn:active { transform: scale(0.95); background: var(--primary-hover); }
+
+    /* Surfenêtre / Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 200;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-content {
+      background: var(--card);
+      border-top: 1px solid var(--card-border);
+      border-radius: 24px 24px 0 0;
+      padding: 24px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+      animation: slideUp 0.2s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .modal-header h2 { font-size: 18px; margin: 0; font-weight: 700; }
+    .modal-close { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; padding: 4px; }
+
+    .form-grid { display: flex; flex-direction: column; gap: 12px; }
+    
+    input, select {
+      padding: 14px 16px;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      font-size: 16px;
+      color: var(--text);
+      width: 100%;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    button.btn-add {
+      background: var(--primary);
+      color: white;
+      border: none;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 16px;
+      border-radius: 12px;
+      margin-top: 8px;
+    }
+    button.btn-add:active { background: var(--primary-hover); }
+
     iframe { display: none; }
   </style>
 </head>
 <body>
 
-  <h1>💸 Suivi Dépenses</h1>
-
+  <!-- Résumé direct -->
   <div class="summary-card">
     <div class="label">Reste à passer sur le compte</div>
     <div class="amount" id="totalAVenir">0.00 €</div>
@@ -63,46 +230,50 @@
     </div>
   </div>
 
-  <div class="form-container">
-    <div class="form-grid">
-      <input type="text" id="description" class="full-width" placeholder="Libellé (ex: Loyer, EDF...)">
-      <input type="number" step="0.01" id="montant" placeholder="Montant €">
-      <select id="categorie">
-        <option value="🏠 Logement & Charges">🏠 Logement & Charges</option>
-        <option value="🛒 Courses & Alimentation">🛒 Courses & Alimentation</option>
-        <option value="🚗 Transport / Auto">🚗 Transport / Auto</option>
-        <option value="📱 Abonnements & Services">📱 Abonnements & Services</option>
-        <option value="🛍️ Shopping & Loisirs">🛍️ Shopping & Loisirs</option>
-        <option value="📦 Autre" selected>📦 Autre</option>
-      </select>
-      
-      <select id="frequence" onchange="toggleDateInput()">
-        <option value="ponctuelle">📅 Date précise</option>
-        <option value="mensuelle">🔄 Mensuel (jour du mois)</option>
-      </select>
-      
-      <div id="dateContainer">
-        <input type="date" id="dateExacte">
-      </div>
-      <div id="jourContainer" style="display: none;">
-        <input type="number" id="jourMois" min="1" max="31" placeholder="Jour (ex: 1, 5, 15...)">
-      </div>
-    </div>
-    <button class="btn-add" onclick="addItem()">Ajouter la dépense</button>
-  </div>
-
-  <div class="section-title">⏳ À venir / À débiter</div>
+  <div class="section-title">Opérations à venir</div>
   <ul id="listPending"></ul>
 
-  <div class="section-title" style="margin-top: 30px;">✅ Déjà passées sur le compte</div>
+  <div class="section-title" style="margin-top: 30px;">Opérations passées</div>
   <ul id="listDone"></ul>
 
+  <!-- Bouton Flottant (FAB) -->
+  <button class="fab-btn" onclick="openModal()">+</button>
+
+  <!-- Surfenêtre (Modal) pour ajouter une dépense -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Nouvelle dépense</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="form-grid">
+        <input type="text" id="description" placeholder="Libellé (ex: Loyer, Forfait...)">
+        <input type="number" step="0.01" id="montant" placeholder="Montant (€)">
+        
+        <select id="frequence" onchange="toggleDateInput()">
+          <option value="ponctuelle">Ponctuel</option>
+          <option value="mensuelle">Mensuel</option>
+        </select>
+        
+        <div id="dateContainer">
+          <input type="date" id="dateExacte">
+        </div>
+        <div id="jourContainer" style="display: none;">
+          <input type="number" id="jourMois" min="1" max="31" placeholder="Jour du mois (ex: 1, 5, 15...)">
+        </div>
+
+        <button class="btn-add" onclick="addItem()">Ajouter la dépense</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulaire invisible pour envoi en arrière-plan -->
   <form id="hiddenForm" action="https://script.google.com/macros/s/AKfycbz7QrZuIP_SfbxpdWhdQVAVVDXGLYEZCdwqk6FeGwVvhVk195ucG_NoxSo-M3te4sCHYA/exec" method="POST" target="hiddenIframe">
     <input type="hidden" name="action" id="formAction">
     <input type="hidden" name="id" id="formId">
     <input type="hidden" name="description" id="formDesc">
     <input type="hidden" name="montant" id="formMontant">
-    <input type="hidden" name="categorie" id="formCat">
+    <input type="hidden" name="categorie" id="formCat" value="Autre">
     <input type="hidden" name="frequence" id="formFreq">
     <input type="hidden" name="dateVal" id="formDateVal">
   </form>
@@ -112,6 +283,18 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbz7QrZuIP_SfbxpdWhdQVAVVDXGLYEZCdwqk6FeGwVvhVk195ucG_NoxSo-M3te4sCHYA/exec";
     let localItems = [];
+
+    function openModal() {
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+    }
+
+    function closeModalOutside(event) {
+      if (event.target.id === 'modalOverlay') closeModal();
+    }
 
     function toggleDateInput() {
       const freq = document.getElementById('frequence').value;
@@ -124,7 +307,6 @@
       }
     }
 
-    // Calcule le timestamp réel de la prochaine échéance
     function getNextDueDateTimestamp(item) {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -133,10 +315,7 @@
         const targetDay = parseInt(item.dateVal, 10);
         if (isNaN(targetDay)) return Infinity;
 
-        // Date cible ce mois-ci
         let targetDate = new Date(today.getFullYear(), today.getMonth(), targetDay);
-
-        // Si le jour est déjà passé ce mois-ci, la prochaine échéance est le mois prochain
         if (targetDate < today) {
           targetDate = new Date(today.getFullYear(), today.getMonth() + 1, targetDay);
         }
@@ -148,7 +327,7 @@
           return targetDate.getTime();
         }
       }
-      return Infinity; // Si aucune date, va en fin de liste
+      return Infinity;
     }
 
     function formatDateDisplay(item) {
@@ -187,7 +366,6 @@
       document.getElementById('totalPasse').innerText = totalPasse.toFixed(2) + " €";
       document.getElementById('totalGlobal').innerText = (totalAVenir + totalPasse).toFixed(2) + " €";
 
-      // Tri strict par date du plus proche au plus éloigné
       localItems.sort((a, b) => getNextDueDateTimestamp(a) - getNextDueDateTimestamp(b));
 
       const pendingEl = document.getElementById('listPending');
@@ -200,13 +378,13 @@
       const doneItems = localItems.filter(i => i.fait);
 
       if (pendingItems.length === 0) {
-        pendingEl.innerHTML = '<p style="text-align:center; color:#888; font-size:14px;">Toutes les dépenses sont passées ! 🎉</p>';
+        pendingEl.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:14px; padding: 10px 0;">Aucune opération à venir.</p>';
       } else {
         pendingItems.forEach(item => pendingEl.appendChild(createItemElement(item)));
       }
 
       if (doneItems.length === 0) {
-        doneEl.innerHTML = '<p style="text-align:center; color:#888; font-size:14px;">Aucune dépense cochée.</p>';
+        doneEl.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:14px; padding: 10px 0;">Aucune opération passée.</p>';
       } else {
         doneItems.forEach(item => doneEl.appendChild(createItemElement(item)));
       }
@@ -223,7 +401,6 @@
           <input type="checkbox" ${item.fait ? 'checked' : ''}>
           <div class="info">
             <span class="desc">${item.description}</span>
-            <span class="details">${item.categorie}</span>
             ${dateTxt ? `<span class="date-tag">🗓️ ${dateTxt}</span>` : ''}
           </div>
         </div>
@@ -240,7 +417,6 @@
       document.getElementById('formId').value = data.id || '';
       document.getElementById('formDesc').value = data.description || '';
       document.getElementById('formMontant').value = data.montant || '';
-      document.getElementById('formCat').value = data.categorie || '';
       document.getElementById('formFreq').value = data.frequence || '';
       document.getElementById('formDateVal').value = data.dateVal || '';
 
@@ -250,7 +426,6 @@
     function addItem() {
       const descInput = document.getElementById('description');
       const amountInput = document.getElementById('montant');
-      const catSelect = document.getElementById('categorie');
       const freqSelect = document.getElementById('frequence');
 
       const desc = descInput.value.trim();
@@ -274,7 +449,7 @@
         id: newId,
         description: desc,
         montant: amount,
-        categorie: catSelect.value,
+        categorie: 'Autre',
         fait: false,
         frequence: freq,
         dateVal: dateVal
@@ -288,6 +463,7 @@
       document.getElementById('dateExacte').value = '';
       document.getElementById('jourMois').value = '';
 
+      closeModal();
       submitForm('add', newItem);
     }
 
