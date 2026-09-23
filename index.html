@@ -46,6 +46,7 @@
     
     .btn-del { background: none; border: none; color: #aaa; cursor: pointer; font-size: 16px; padding: 4px; }
     .btn-del:hover { color: #d90429; }
+    iframe { display: none; }
   </style>
 </head>
 <body>
@@ -74,7 +75,7 @@
         <option value="📦 Autre" selected>📦 Autre</option>
       </select>
     </div>
-    <button class="btn-add" id="btnAdd" onclick="addItem()">Ajouter la dépense</button>
+    <button class="btn-add" onclick="addItem()">Ajouter la dépense</button>
   </div>
 
   <div class="section-title">⏳ À venir / À débiter</div>
@@ -83,19 +84,28 @@
   <div class="section-title" style="margin-top: 30px;">✅ Déjà passées sur le compte</div>
   <ul id="listDone"></ul>
 
+  <!-- Formulaire invisible pour soumettre sans blocage CORS -->
+  <form id="hiddenForm" action="https://script.google.com/macros/s/AKfycbzWRJ15yLASE1lewGfvMTG5GN-n9Z41RCubdHrhwtRlPReWdOOwsqK3Xjr5Sj_D7r1t0w/exec" method="POST" target="hiddenIframe">
+    <input type="hidden" name="action" id="formAction">
+    <input type="hidden" name="id" id="formId">
+    <input type="hidden" name="description" id="formDesc">
+    <input type="hidden" name="montant" id="formMontant">
+    <input type="hidden" name="categorie" id="formCat">
+  </form>
+
+  <iframe name="hiddenIframe" id="hiddenIframe" onload="onIframeLoad()"></iframe>
+
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbzWRJ15yLASE1lewGfvMTG5GN-n9Z41RCubdHrhwtRlPReWdOOwsqK3Xjr5Sj_D7r1t0w/exec";
+    let isInitial = true;
 
-    async function loadData(params = {}) {
+    async function loadData() {
       try {
-        const query = new URLSearchParams(params).toString();
-        const url = query ? `${API_URL}?${query}` : API_URL;
-
-        const response = await fetch(url);
+        const response = await fetch(API_URL + "?cache=" + Date.now());
         const data = await response.json();
         renderData(data);
       } catch (err) {
-        console.error("Erreur de chargement :", err);
+        console.error("Erreur :", err);
       }
     }
 
@@ -146,7 +156,25 @@
       return li;
     }
 
-    async function addItem() {
+    function submitForm(action, data = {}) {
+      document.getElementById('formAction').value = action;
+      document.getElementById('formId').value = data.id || '';
+      document.getElementById('formDesc').value = data.description || '';
+      document.getElementById('formMontant').value = data.montant || '';
+      document.getElementById('formCat').value = data.categorie || '';
+
+      document.getElementById('hiddenForm').submit();
+    }
+
+    function onIframeLoad() {
+      if (isInitial) {
+        isInitial = false;
+        return;
+      }
+      setTimeout(loadData, 800);
+    }
+
+    function addItem() {
       const descInput = document.getElementById('description');
       const amountInput = document.getElementById('montant');
       const catSelect = document.getElementById('categorie');
@@ -162,22 +190,20 @@
       descInput.value = '';
       amountInput.value = '';
 
-      // Envoi de l'action et rechargement direct dans la même requête GET
-      await loadData({
-        action: 'add',
+      submitForm('add', {
         description: desc,
         montant: amount,
         categorie: catSelect.value
       });
     }
 
-    async function toggleItem(id) {
-      await loadData({ action: 'toggle', id: id });
+    function toggleItem(id) {
+      submitForm('toggle', { id: id });
     }
 
-    async function deleteItem(id) {
+    function deleteItem(id) {
       if (!confirm("Supprimer cette dépense ?")) return;
-      await loadData({ action: 'delete', id: id });
+      submitForm('delete', { id: id });
     }
 
     loadData();
