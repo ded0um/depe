@@ -199,36 +199,44 @@
 
     .form-grid { display: flex; flex-direction: column; gap: 12px; }
     
-    /* Correction forcée du sélecteur sombre pour mobile */
-    input, select {
+    input {
       padding: 14px 16px;
-      background-color: #0f172a !important;
+      background-color: #0f172a;
       border: 1px solid var(--card-border);
       border-radius: 12px;
       font-size: 16px;
-      color: #f8fafc !important;
+      color: #f8fafc;
       width: 100%;
-      appearance: none !important;
-      -webkit-appearance: none !important;
-      -moz-appearance: none !important;
-      color-scheme: dark;
     }
-
-    select {
-      background-image: url("data:image/svg+xml;utf8,<svg fill='%94a3b8' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") !important;
-      background-repeat: no-repeat !important;
-      background-position: right 12px center !important;
-      background-size: 20px !important;
-    }
-
-    select option {
-      background-color: #0f172a !important;
-      color: #f8fafc !important;
-    }
-
-    input:focus, select:focus {
+    input:focus {
       outline: none;
       border-color: var(--primary);
+    }
+
+    /* Sélecteur personnalisé à 2 boutons (Remplacement du menu déroulant) */
+    .segmented-control {
+      display: flex;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+    }
+    .segmented-btn {
+      flex: 1;
+      padding: 12px;
+      background: transparent;
+      border: none;
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .segmented-btn.active {
+      background: var(--card-border);
+      color: var(--text);
     }
 
     button.btn-add {
@@ -340,10 +348,11 @@
         <input type="text" id="description" placeholder="Libellé (ex: Loyer, Forfait...)">
         <input type="number" step="0.01" id="montant" placeholder="Montant (€)" inputmode="decimal">
         
-        <select id="frequence" onchange="toggleDateInput()">
-          <option value="ponctuelle">Ponctuel</option>
-          <option value="mensuelle">Mensuel</option>
-        </select>
+        <!-- Sélecteur à 2 boutons sombres -->
+        <div class="segmented-control">
+          <button type="button" class="segmented-btn active" id="btnPonctuel" onclick="setFrequence('ponctuelle')">Ponctuel</button>
+          <button type="button" class="segmented-btn" id="btnMensuel" onclick="setFrequence('mensuelle')">Mensuel</button>
+        </div>
         
         <div id="dateContainer">
           <input type="text" id="dateExacteText" placeholder="Date (ex: 25/09/2026)" inputmode="numeric" maxlength="10" oninput="formatDateInput(this)">
@@ -375,7 +384,7 @@
     <input type="hidden" name="description" id="formDesc">
     <input type="hidden" name="montant" id="formMontant">
     <input type="hidden" name="categorie" id="formCat" value="Autre">
-    <input type="hidden" name="frequence" id="formFreq">
+    <input type="hidden" name="frequence" id="formFreq" value="ponctuelle">
     <input type="hidden" name="dateVal" id="formDateVal">
   </form>
 
@@ -385,6 +394,7 @@
     const API_URL = "https://script.google.com/macros/s/AKfycbz7QrZuIP_SfbxpdWhdQVAVVDXGLYEZCdwqk6FeGwVvhVk195ucG_NoxSo-M3te4sCHYA/exec";
     let localItems = [];
     let itemToDeleteId = null;
+    let selectedFrequence = 'ponctuelle';
 
     function openModal() {
       document.getElementById('modalOverlay').classList.add('open');
@@ -398,12 +408,19 @@
       if (event.target.id === 'modalOverlay') closeModal();
     }
 
-    function toggleDateInput() {
-      const freq = document.getElementById('frequence').value;
+    function setFrequence(freq) {
+      selectedFrequence = freq;
+      const btnP = document.getElementById('btnPonctuel');
+      const btnM = document.getElementById('btnMensuel');
+
       if (freq === 'mensuelle') {
+        btnM.classList.add('active');
+        btnP.classList.remove('active');
         document.getElementById('dateContainer').style.display = 'none';
         document.getElementById('jourContainer').style.display = 'block';
       } else {
+        btnP.classList.add('active');
+        btnM.classList.remove('active');
         document.getElementById('dateContainer').style.display = 'block';
         document.getElementById('jourContainer').style.display = 'none';
       }
@@ -550,14 +567,12 @@
     function addItem() {
       const descInput = document.getElementById('description');
       const amountInput = document.getElementById('montant');
-      const freqSelect = document.getElementById('frequence');
 
       const desc = descInput.value.trim();
       const amount = parseFloat(amountInput.value);
-      const freq = freqSelect.value;
       
       let dateVal = '';
-      if (freq === 'mensuelle') {
+      if (selectedFrequence === 'mensuelle') {
         dateVal = document.getElementById('jourMois').value;
       } else {
         dateVal = document.getElementById('dateExacteText').value.trim();
@@ -575,7 +590,7 @@
         montant: amount,
         categorie: 'Autre',
         fait: false,
-        frequence: freq,
+        frequence: selectedFrequence,
         dateVal: dateVal
       };
 
