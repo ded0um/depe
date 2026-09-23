@@ -4,6 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Suivi Dépenses</title>
+
+  <!-- Configuration PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Dépenses">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/5501/5501375.png">
+
   <style>
     :root {
       --bg: #0f172a;
@@ -300,7 +310,6 @@
 
   <button class="fab-btn" onclick="openModalForAdd()">+</button>
 
-  <!-- Modal Hybride (Ajout & Édition) -->
   <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
     <div class="modal-content">
       <div class="modal-header">
@@ -356,6 +365,13 @@
     let itemToDeleteId = null;
     let editingItemId = null;
     let selectedFrequence = 'ponctuelle';
+
+    // Enregistrement du Service Worker PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.error('SW Error:', err));
+      });
+    }
 
     function openModalForAdd() {
       editingItemId = null;
@@ -525,14 +541,13 @@
       let pressTimer = null;
       let isLongPress = false;
 
-      // Gestion de l'appui long (2s) vs clic simple
       const startPress = () => {
         isLongPress = false;
         pressTimer = setTimeout(() => {
           isLongPress = true;
-          if (navigator.vibrate) navigator.vibrate(50); // Vibration de confirmation
+          if (navigator.vibrate) navigator.vibrate(50);
           openModalForEdit(item);
-        }, 2000); // 2000ms = 2 secondes
+        }, 2000);
       };
 
       const cancelPress = () => {
@@ -601,7 +616,6 @@
       }
 
       if (editingItemId) {
-        // Mode ÉDITION
         const item = localItems.find(i => i.id.toString() === editingItemId.toString());
         if (item) {
           item.description = desc;
@@ -613,7 +627,6 @@
           submitForm('edit', item);
         }
       } else {
-        // Mode AJOUT
         const newId = Date.now().toString();
         const newItem = {
           id: newId,
