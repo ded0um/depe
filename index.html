@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Suivi des Dépenses</title>
+  <title>Suivi Dépenses</title>
   <style>
     :root {
       --bg: #f8f9fa;
@@ -34,7 +34,7 @@
     ul { list-style: none; padding: 0; margin: 0; }
     li { background: var(--card); padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: opacity 0.2s; }
     
-    /* Éléments cochés (passés sur le compte) */
+    /* Éléments cochés */
     li.done { opacity: 0.55; background: #e9ecef; }
     li.done .desc { text-decoration: line-through; }
     li.done .amount-tag { color: var(--checked); }
@@ -93,11 +93,11 @@
   <ul id="listDone"></ul>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbz7QrZuIP_SfbxpdWhdQVAVVDXGLYEZCdwqk6FeGwVvhVk195ucG_NoxSo-M3te4sCHYA/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbzWRJ15yLASE1lewGfvMTG5GN-n9Z41RCubdHrhwtRlPReWdOOwsqK3Xjr5Sj_D7r1t0w/exec";
 
     async function loadData() {
       try {
-        const res = await fetch(API_URL);
+        const res = await fetch(API_URL, { redirect: "follow" });
         const data = await res.json();
         
         // Mise à jour des totaux
@@ -127,7 +127,7 @@
         }
 
       } catch (err) {
-        console.error("Erreur :", err);
+        console.error("Erreur de chargement :", err);
       }
     }
 
@@ -169,6 +169,7 @@
 
       await fetch(API_URL, {
         method: 'POST',
+        redirect: "follow",
         body: JSON.stringify({
           action: 'add',
           description: desc,
@@ -183,6 +184,7 @@
     async function toggleItem(id, fait) {
       await fetch(API_URL, {
         method: 'POST',
+        redirect: "follow",
         body: JSON.stringify({ action: 'toggle', id: id, fait: fait })
       });
       loadData();
@@ -192,6 +194,7 @@
       if (!confirm("Supprimer cette dépense ?")) return;
       await fetch(API_URL, {
         method: 'POST',
+        redirect: "follow",
         body: JSON.stringify({ action: 'delete', id: id })
       });
       loadData();
