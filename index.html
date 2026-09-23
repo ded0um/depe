@@ -199,17 +199,19 @@
 
     .form-grid { display: flex; flex-direction: column; gap: 12px; }
     
+    /* Correction forcée du sélecteur sombre pour mobile */
     input, select {
       padding: 14px 16px;
       background-color: #0f172a !important;
       border: 1px solid var(--card-border);
       border-radius: 12px;
       font-size: 16px;
-      color: var(--text) !important;
+      color: #f8fafc !important;
       width: 100%;
       appearance: none !important;
       -webkit-appearance: none !important;
       -moz-appearance: none !important;
+      color-scheme: dark;
     }
 
     select {
@@ -219,9 +221,9 @@
       background-size: 20px !important;
     }
 
-    option {
+    select option {
       background-color: #0f172a !important;
-      color: var(--text) !important;
+      color: #f8fafc !important;
     }
 
     input:focus, select:focus {
@@ -598,7 +600,6 @@
       }
     }
 
-    /* Gestion de la modal de confirmation personnalisée */
     function deleteItem(id, event) {
       if (event) event.stopPropagation();
       itemToDeleteId = id;
