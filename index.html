@@ -74,7 +74,7 @@
         <option value="📦 Autre" selected>📦 Autre</option>
       </select>
     </div>
-    <button class="btn-add" onclick="addItem()">Ajouter la dépense</button>
+    <button class="btn-add" id="btnAdd" onclick="addItem()">Ajouter la dépense</button>
   </div>
 
   <div class="section-title">⏳ À venir / À débiter</div>
@@ -86,9 +86,12 @@
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbzWRJ15yLASE1lewGfvMTG5GN-n9Z41RCubdHrhwtRlPReWdOOwsqK3Xjr5Sj_D7r1t0w/exec";
 
-    async function loadData() {
+    async function loadData(params = {}) {
       try {
-        const response = await fetch(API_URL);
+        const query = new URLSearchParams(params).toString();
+        const url = query ? `${API_URL}?${query}` : API_URL;
+
+        const response = await fetch(url);
         const data = await response.json();
         renderData(data);
       } catch (err) {
@@ -143,23 +146,6 @@
       return li;
     }
 
-    async function sendAction(payload) {
-      const formData = new URLSearchParams();
-      for (const key in payload) {
-        formData.append(key, payload[key]);
-      }
-
-      await fetch(API_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData
-      });
-
-      // Délai de précaution pour laisser le temps à Google Sheets d'écrire la ligne
-      setTimeout(loadData, 1000);
-    }
-
     async function addItem() {
       const descInput = document.getElementById('description');
       const amountInput = document.getElementById('montant');
@@ -176,7 +162,8 @@
       descInput.value = '';
       amountInput.value = '';
 
-      await sendAction({
+      // Envoi de l'action et rechargement direct dans la même requête GET
+      await loadData({
         action: 'add',
         description: desc,
         montant: amount,
@@ -185,12 +172,12 @@
     }
 
     async function toggleItem(id) {
-      await sendAction({ action: 'toggle', id: id });
+      await loadData({ action: 'toggle', id: id });
     }
 
     async function deleteItem(id) {
       if (!confirm("Supprimer cette dépense ?")) return;
-      await sendAction({ action: 'delete', id: id });
+      await loadData({ action: 'delete', id: id });
     }
 
     loadData();
