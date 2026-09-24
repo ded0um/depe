@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dépenses (by Dedoum)</title>
 
-  <!-- Configuration PWA et Icône -->
-  <link rel="manifest" href="manifest.json?v=2">
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=2">
-  <link rel="apple-touch-icon" href="icon.svg?v=2">
-  <meta name="theme-color" content="#0f172a">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Dépenses">
+<!-- Configuration PWA et Icône -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dépenses">
 
   <style>
     :root {
@@ -384,7 +384,7 @@
     // Enregistrement du Service Worker PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js', { scope: '/depe/' })
+    navigator.serviceWorker.register('/depe/sw.js', { scope: '/depe/' })
       .catch(err => console.error('Erreur SW:', err));
   });
 }
