@@ -1,9 +1,9 @@
-const CACHE_NAME = 'depenses-v2';
+const CACHE_NAME = 'depe-dedoum-v1';
 const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon.svg'
+  '/depe/',
+  '/depe/index.html',
+  '/depe/manifest.json',
+  '/depe/icon.svg'
 ];
 
 self.addEventListener('install', (e) => {
@@ -29,7 +29,7 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  if (e.request.url.includes('script.google.com')) {
+  if (e.request.url.includes('script.google.com') || e.request.url.includes('api.open-meteo.com')) {
     return;
   }
   e.respondWith(
