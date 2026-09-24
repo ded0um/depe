@@ -1,20 +1,9 @@
 {
-  "id": "/depe/",
+  "id": "https://ded0um.github.io/depe/",
+  "start_url": "https://ded0um.github.io/depe/",
+  "scope": "https://ded0um.github.io/depe/",
   "name": "Dépenses",
   "short_name": "Dépenses",
-  "description": "Gestion des dépenses",
-  "start_url": "/depe/",
-  "scope": "/depe/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
-  "orientation": "any",
-  "icons": [
-    {
-      "src": "icon.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+  "icons": [ ... ]
 }
