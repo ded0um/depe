@@ -1,13 +1,14 @@
 {
-  "name": "Dépenses (by Dedoum)",
+  "id": "/depe/",
+  "name": "Dépenses",
   "short_name": "Dépenses",
-  "description": "Suivi de dépenses minimaliste",
+  "description": "Gestion des dépenses",
   "start_url": "/depe/",
   "scope": "/depe/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
-  "orientation": "portrait",
+  "orientation": "any",
   "icons": [
     {
       "src": "icon.svg",
