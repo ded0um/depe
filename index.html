@@ -382,11 +382,12 @@
     let selectedFrequence = 'ponctuelle';
 
     // Enregistrement du Service Worker PWA
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.error('SW Error:', err));
-      });
-    }
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', { scope: '/depe/' })
+      .catch(err => console.error('Erreur SW:', err));
+  });
+}
 
     function openModalForAdd() {
       editingItemId = null;
