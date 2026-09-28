@@ -1,7 +1,7 @@
 {
   "id": "https://ded0um.github.io/depe/",
-  "name": "Dépenses (by Dedoum)",
-  "short_name": "Dépenses",
+  "name": "Dépenses T. (by Dedoum)",
+  "short_name": "Dépenses T.",
   "description": "Gestion des dépenses",
   "start_url": "https://ded0um.github.io/depe/?app=depe",
   "scope": "https://ded0um.github.io/depe/",
